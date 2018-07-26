@@ -8,7 +8,6 @@ import os #DS18B20
 import glob #DS18B20
 import Adafruit_CharLCD as LCD
 import urllib2
-#import sys
 import RPi.GPIO as GPIO
 
 # LEDsetup
@@ -21,7 +20,7 @@ t_blink = 0.25 # Time to blink LED
 API_code = 'YOUR API CODE'
 t_delay = 15 # Time between readings
 
-#LCD Config:
+#LCD Pin Config:
 lcd_rs        = 25
 lcd_en        = 24
 lcd_d4        = 23
@@ -29,8 +28,6 @@ lcd_d5        = 17
 lcd_d6        = 18
 lcd_d7        = 22
 lcd_backlight = 2
-
-
 # 16x2 LCD.
 lcd_columns = 16
 lcd_rows    = 2
@@ -48,7 +45,7 @@ mcp = Adafruit_MCP3008.MCP3008(spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE))
 dht_pin = 6
 dht_sensor = Adafruit_DHT.DHT22
 
-#Set up DS18B20 to read external temperature
+#Set up DS18B20 to read external temperature from pin 4
 os.system('modprobe w1-gpio')  # Turns on the GPIO module
 os.system('modprobe w1-therm') # Turns on the Temperature module
 base_dir = '/sys/bus/w1/devices/'
@@ -69,7 +66,6 @@ def read_temp():
     temp_string = lines[1][equals_pos+2:]
     temp_c = float(temp_string) / 1000.0
     return temp_c
-### NB: CONNECT DS18B20 TO PIN 4
 
 #Current monitor Initial values
 R_burden=18.2
@@ -100,25 +96,29 @@ while True:
             n =+ 1
         I_ratio = ICAL*(supply_voltage/ADC_counts)
         Irms = I_ratio * np.sqrt(sum_I/number_of_samples)
+        
+        # Compute final sensor readings
         Power= Irms*mains_voltage
-
         humidity, int_temp = Adafruit_DHT.read_retry(dht_sensor, dht_pin)
         ext_temp = read_temp()
-
+        
+        # Print to terminal
         print(Power, 'Watts', humidity, '%', int_temp, 'degrees', ext_temp, 'degrees')
-        # Update LCD
+        # Send to LCD
         lcd.clear()
         text = 'Pwr='+str(Power)+'Hum='+str(humidity)+'\nIT='+str(int_temp)+' ET='+str(ext_temp)
         lcd.message(text)
+        #Send values to ThingSpeak
         baseURL = 'https://api.thingspeak.com/update?api_key='+API_code
         f = urllib2.urlopen(baseURL+'&field1='+str(Power)+'&field2='+str(humidity)+'&field3='
                             +str(int_temp)+'&field4='+str(ext_temp))
         print f.read()
         f.close()
-
+        
+        #Blink LED everytime sensors are read
         GPIO.output(LedPin, GPIO.LOW)
         time.sleep(t_blink)
-    # Pause for half a second.
+        #Pause between readings
         time.sleep(t_delay-t_blink)
 
 
