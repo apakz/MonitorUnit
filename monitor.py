@@ -18,7 +18,7 @@ GPIO.setup(LedPin, GPIO.OUT)
 t_blink = 0.25 # Time to blink LED
 
 # Place your API Code here
-API_code = '687DZ3EE2XDXHSZY'
+API_code = 'YOUR API CODE'
 t_delay = 15 # Time between readings
 
 #LCD Config:
