@@ -42,3 +42,7 @@ After about 30 entries, there is a HTTP bad gateway error
 
 ## Future developments
 * Streamline code (break up into components)
+* Set up RPi to run script on boot
+* Deal with disconnection with ThingSpeak
+* Be able to update various sensors at different rates (e.g. temp/humidity every 300 seconds, power every second (though only able to update thingspeak every 15 seconds)
+
